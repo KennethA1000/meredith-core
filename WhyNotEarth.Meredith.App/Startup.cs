@@ -21,6 +21,10 @@ using WhyNotEarth.Meredith.App.Middleware;
 using WhyNotEarth.Meredith.App.Swagger;
 using WhyNotEarth.Meredith.Data.Entity;
 using WhyNotEarth.Meredith.DependencyInjection;
+using Prometheus;
+using WhyNotEarth.Meredith.App.Prometheus;
+using Microsoft.Extensions.Primitives;
+using System.Linq;
 
 [assembly: ApiController]
 namespace WhyNotEarth.Meredith.App
@@ -90,6 +94,7 @@ namespace WhyNotEarth.Meredith.App
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
+                
             }
             else
             {
@@ -99,6 +104,7 @@ namespace WhyNotEarth.Meredith.App
             using (var serviceScope = app.ApplicationServices.GetRequiredService<IServiceScopeFactory>().CreateScope())
             {
                 using var context = serviceScope.ServiceProvider.GetService<MeredithDbContext>();
+
                 context.Database.Migrate();
             }
 
@@ -112,6 +118,10 @@ namespace WhyNotEarth.Meredith.App
 
             app.UseRouting();
 
+            //Setup Prometheus metrics
+            app.UseMetricServer();
+            PrometheusMetrics.SetupMetrics(app);
+            
             app.UseCors();
 
             app.UseCustomAuthentication();
